@@ -48,8 +48,6 @@
                      :main         todomvc.dev-server
                      :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                      :plugins      [[lein-figwheel "0.5.1"]]
-                     :figwheel     {:server-port 3449}}
-             :plain {:main         todomvc.dev-server
-                     :plugins      [[lein-figwheel "0.5.1"]]}}
+                     :figwheel     {:server-port 3449}}}
 
   )
