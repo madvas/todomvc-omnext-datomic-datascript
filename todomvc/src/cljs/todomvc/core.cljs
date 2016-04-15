@@ -25,12 +25,11 @@
 ; with atom
 (def conn (d/conn-from-datoms [(d/datom -1 :dummy/item 1)]))
 
-(d/listen! conn :log
-           (fn [tx-report]
-             #_(->> (:tx-data tx-report)
-                    (filter #(true? (last %)))
-                    (map #(apply println (take 3 %)))
-                    doall)))
+#_ (d/listen! conn :log (fn [tx-report]
+                       (->> (:tx-data tx-report)
+                            (filter #(true? (last %)))
+                            (map #(apply println (take 3 %)))
+                            doall)))
 
 (defn show-item? [filter-type item]
   (let [completed? (:todo/completed item)]
@@ -91,7 +90,6 @@
 (defn merge-delta [conn]
   (fn [reconciler state res]
     (let [{:keys [keys value]} (parse-delta res)]
-      (println "merge: " value)
       (d/transact conn value)
       {:keys    keys
        :next    @conn
@@ -101,7 +99,7 @@
 
 (defn migrate-tempids [app-state-pure _ tempids id-key]
   (when-not (empty? tempids)                                ; Migrate should return updated db
-    (q/update-ids! conn (u/p "merginng tempids: " tempids) id-key)) ; instead of making direct changes to it
+    (q/update-ids! conn tempids id-key))                    ; instead of making direct changes to it
   app-state-pure)                                           ; but it didn't work here with datascript
 
 (def reconciler
@@ -129,11 +127,8 @@
           es (new js/EventSource "/events")]
       (e/listen es et/MESSAGE
                 (fn [e]
-                  #_(let [{:keys [result query]} (u/read-transit (u/event-data e))]
-                      (om/merge! reconciler result query))
-
                   (let [msg (u/read-transit (u/event-data e))]
-                    (migrate-tempids nil nil (:tempids msg) :db/id)
+                    (migrate-tempids nil nil (:tempids msg) (:id-key (:config reconciler)))
                     (om/transact! this `[(todos/write-tx-changes ~msg) :todos/list]))))
       (om/set-state! this {:event-source es
                            :sort-by      :todo/created

@@ -14,11 +14,6 @@
   (println "Default read " k)
   {:remote true})
 
-(defmethod read :todos/by-id
-  [{:keys [state query-root]}]
-  {:value  (q/pull state (second query-root))
-   :remote true})
-
 (defmethod read :todos/list
   [{:keys [state query] :as p}]
   ; To know if this method is called by Todos
@@ -48,8 +43,7 @@
 
 (defmethod mutate 'todo/update
   [{:keys [state]} _ todo]
-  {:value  {:keys [[:todos/by-id (:db/id todo)]]}
-   :remote true
+  {:remote true
    :action (fn []
              (clear-editing! state)
              (q/todo-update! state todo))})
@@ -99,7 +93,6 @@
   [{:keys [state]} _ {:keys [tx-data]}]
   {:remote false
    :action (fn []
-             (println "write-tx-changes" tx-data)
              (q/write-tx-data! state tx-data))})
 
 (defmethod mutate 'todos/print

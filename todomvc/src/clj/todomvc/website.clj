@@ -14,7 +14,6 @@
 
 (def transit #{"application/transit+json"})
 
-
 (defn mutation? [query]
   (some (comp symbol? :dispatch-key) (:children (omp/query->ast query))))
 

@@ -9,8 +9,7 @@
     (when (and (not (string/blank? edit-text))
                (not= edit-text title)
                editing)
-      (om/transact! c `[(todo/update {:db/id ~id :todo/title ~edit-text})
-                        :todos/list]))
+      (om/transact! c `[(todo/update {:db/id ~id :todo/title ~edit-text})]))
     (u/prevent-default e)))
 
 (defn edit [c {:keys [db/id todo/title]}]
@@ -34,9 +33,7 @@
          :type      "checkbox"
          :checked   (and completed "checked")
          :onChange  (fn [_]
-                      (om/transact! c `[(todo/update
-                                          {:db/id ~id :todo/completed ~(not completed)})
-                                        :todos/list]))}))
+                      (om/transact! c `[(todo/update {:db/id ~id :todo/completed ~(not completed)})]))}))
 
 (defn label [c {:keys [todo/title] :as props}]
   (dom/label #js {:onDoubleClick #(edit c props)} title))
@@ -57,12 +54,7 @@
          :onKeyDown (u/on-key-down {:enter-key  (partial submit c props)
                                     :escape-key (partial cancel c props)})}))
 
-
 (defui TodoItem
-  static om/Ident
-  (ident [this {:keys [db/id]}]
-    [:todos/by-id id])
-
   static om/IQuery
   (query [this]
     [:db/id :todo/editing :todo/completed :todo/title :todo/created])
