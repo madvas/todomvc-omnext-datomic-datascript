@@ -3,8 +3,9 @@
             [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.pprint :refer [pprint]]
-            )
-  (:import datomic.Util))
+            [cognitect.transit :as transit]
+            [om.transit :as omt])
+  (:import [java.io ByteArrayOutputStream]))
 
 (defn p [& args]
   "Like print, but returns last arg. For debugging purposes"
@@ -15,3 +16,12 @@
   (flush)
   (last args))
 
+(defn write-transit
+  ([x] (write-transit x {}))
+  ([x opts]
+   (let [baos (ByteArrayOutputStream.)
+         w (omt/writer baos opts)
+         _ (transit/write w x)
+         ret (.toString baos)]
+     (.reset baos)
+     ret)))

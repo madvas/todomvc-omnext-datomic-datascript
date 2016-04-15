@@ -1,8 +1,10 @@
 (ns todomvc.util
   (:require [cognitect.transit :as t]
             [cljs.pprint :refer [pprint]]
-            [om.transit :as omt])
+            [om.transit :as omt]
+            [goog.events.KeyCodes :as kc])
   (:import [goog.net XhrIo]))
+
 
 (defn p [& args]
   "Like print, but returns last arg. For debugging purposes"
@@ -26,15 +28,17 @@
     word
     (str word "s")))
 
+(defn read-transit [x]
+  (t/read (omt/reader) x))
+
 (defn transit-post [url]
   (fn [{:keys [remote]} cb]
     (.send XhrIo url
            (fn [e]
              (this-as this
-               (cb (t/read (omt/reader) (.getResponseText this)))))
+               (cb (read-transit (.getResponseText this)))))
            "POST" (t/write (omt/writer) remote)
-           #js {"Content-Type" "application/transit+json"})
-    ))
+           #js {"Content-Type" "application/transit+json"})))
 
 (defn prevent-default [e]
   (doto e (.preventDefault) (.stopPropagation)))
@@ -42,45 +46,22 @@
 (defn target-val [e]
   (.. e -target -value))
 
-(def ESCAPE_KEY 27)
-(def ENTER_KEY 13)
-
-
-(defn on-key-down [c props key-fns]
+(defn on-key-down [key-fns]
   (fn [e]
     (let [f (condp == (.-keyCode e)
-              ESCAPE_KEY (:escape-key key-fns)
-              ENTER_KEY (:enter-key key-fns)
+              kc/ESC (:escape-key key-fns)
+              kc/ENTER (:enter-key key-fns)
               #(do %))]
-      (f c props e)
-      )))
+      (f e))))
 
 (defn sort-by-dir [keyfn dir coll]
   (let [comp (if (= dir :desc) #(compare %2 %1) #(compare %1 %2))]
     (sort-by keyfn comp coll)))
 
-(defn submap? [sub orig]
-  (= sub (select-keys orig (keys sub))))
+(defn event-data [e]
+  (-> e (aget "event_") (aget "data")))
 
-(comment
-  (def sel [{:todos/list [:db/id :todo/title :todo/completed :todo/created]}])
-
-  (t/write (t/writer :json) sel)
-  )
-
-(defn dissoc-in
-  "Dissociates an entry from a nested associative structure returning a new
-  nested structure. keys is a sequence of keys. Any empty maps that result
-  will not be present in the new structure."
-  [m [k & ks :as keys]]
-  (if ks
-    (if-let [nextmap (get m k)]
-      (let [newmap (dissoc-in nextmap ks)]
-        (if (seq newmap)
-          (assoc m k newmap)
-          (dissoc m k)))
-      m)
-    (dissoc m k)))
-
-(defn eq-in-key? [k & ms]
-  (-> (map k ms) set count (= 1)))
+(defn apply-if [pred f x & args]
+  (if-not (pred x)
+    (apply f x args)
+    x))

@@ -11,7 +11,7 @@
 
 (defmethod read :default
   [{:keys [state]} k _]
-  (println "default read " k)
+  (println "Default read " k)
   {:remote true})
 
 (defmethod read :todos/by-id
@@ -41,7 +41,7 @@
   {:value  {:keys [:todos/list]}
    :remote true
    :action (fn []
-             (q/todos-toggle-all state value))})
+             (q/todos-toggle-all! state value))})
 
 (defn clear-editing! [state]
   (d/transact! state (into [] (map #(assoc % :todo/editing false) (q/todos state [:db/id])))))
@@ -52,7 +52,7 @@
    :remote true
    :action (fn []
              (clear-editing! state)
-             (q/todo-update state todo))})
+             (q/todo-update! state todo))})
 
 (defmethod mutate 'todo/edit
   [{:keys [state]} _ {:keys [db/id]}]
@@ -73,7 +73,7 @@
   {:value  {:keys [:todos/list]}
    :remote false
    :action (fn []
-             (let [local-id (-> @(q/add-entity state new-todo)
+             (let [local-id (-> @(q/add-entity! state new-todo)
                                 :tempids
                                 (get id))]
                (om/transact! component `[(todo/create ~(assoc new-todo :db/id local-id))])))})
@@ -85,7 +85,7 @@
    :remote true
    :action (fn []
 
-             (q/retract-entity state id))})
+             (q/retract-entity! state id))})
 
 
 (defmethod mutate 'todos/delete-by
@@ -93,10 +93,19 @@
   {:value  {:keys [:todos/list]}
    :remote true
    :action (fn []
-             (q/todos-delete-by state cond-map))})
+             (q/todos-delete-by! state cond-map))})
+
+(defmethod mutate 'todos/write-tx-changes
+  [{:keys [state]} _ {:keys [tx-data]}]
+  {:remote false
+   :action (fn []
+             (println "write-tx-changes" tx-data)
+             (q/write-tx-data! state tx-data))})
 
 (defmethod mutate 'todos/print
   [{:keys [state]}]
   {:remote false
    :action (fn []
              (u/pcoll (q/todos state)))})
+
+

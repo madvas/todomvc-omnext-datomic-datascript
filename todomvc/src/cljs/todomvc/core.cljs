@@ -1,6 +1,5 @@
 (ns todomvc.core
-  (:require [goog.events :as events]
-            [goog.dom :as gdom]
+  (:require [goog.dom :as gdom]
             [om.next :as om :refer-macros [defui]]
             [om.dom :as dom]
             [todomvc.util :as util :refer [hidden pluralize]]
@@ -10,7 +9,9 @@
             [todomvc.util :as u]
             [clojure.string :as str]
             [datascript.core :as d]
-            [todomvc.queries :as q])
+            [todomvc.queries :as q]
+            [goog.events :as e]
+            [goog.events.EventType :as et])
   (:import [goog History]
            [goog.history EventType]))
 
@@ -37,7 +38,7 @@
         (and (not completed?) (= filter-type :active))
         (str/blank? filter-type))))
 
-(defn main [todos {:keys [todos/list] :as props}]
+(defn main [todos {:keys [todos/list]}]
   (let [checked? (every? :todo/completed list)
         {sort-by     :sort-by
          sort-dir    :sort-dir
@@ -46,7 +47,8 @@
                  (dom/input
                    #js {:id       "toggle-all"
                         :type     "checkbox"
-                        :onChange #(om/transact! todos `[(todos/toggle-all {:value ~(not checked?)}) :todos/list])
+                        :onChange #(om/transact! todos `[(todos/toggle-all {:value ~(not checked?)})
+                                                         :todos/list])
                         :checked  checked?})
                  (apply dom/ul #js {:id "todo-list"}
                         (->> list
@@ -68,10 +70,12 @@
                           (dom/strong nil active)
                           (str " " (pluralize active "item") " left"))
                 (apply dom/ul #js {:id "filters"}
-                       (map (fn [[x y]] (dom/li nil (dom/a #js {:href      (str "#/" (name x))
-                                                                :className (when (or (= x filter-type)) "selected")
-                                                                :onClick   #(om/update-state! todos assoc :filter-type x)}
-                                                           y)))
+                       (map (fn [[x y]]
+                              (dom/li nil
+                                      (dom/a #js {:href      (str "#/" (name x))
+                                                  :className (when (or (= x filter-type)) "selected")
+                                                  :onClick   #(om/update-state! todos assoc :filter-type x)}
+                                             y)))
                             [["" "All"] [:active "Active"] [:completed "Completed"]]))
                 (clear-button todos completed))))
 
@@ -80,13 +84,14 @@
          (if (keyword? action)
            {:keys  [action]
             :value value}
-           {:keys  action
-            :value [value]}))
+           {:keys  action                                   ; I'm not sure about correctness of this at all
+            :value [value]}))                               ; Throws some error into console, but it works ;)
        (reduce (partial merge-with concat))))
 
 (defn merge-delta [conn]
   (fn [reconciler state res]
     (let [{:keys [keys value]} (parse-delta res)]
+      (println "merge: " value)
       (d/transact conn value)
       {:keys    keys
        :next    @conn
@@ -96,7 +101,7 @@
 
 (defn migrate-tempids [app-state-pure _ tempids id-key]
   (when-not (empty? tempids)                                ; Migrate should return updated db
-    (q/update-ids! conn tempids id-key))                    ; instead of making direct changes to it
+    (q/update-ids! conn (u/p "merginng tempids: " tempids) id-key)) ; instead of making direct changes to it
   app-state-pure)                                           ; but it didn't work here with datascript
 
 (def reconciler
@@ -109,7 +114,6 @@
      :id-key    :db/id
      :migrate   migrate-tempids}))
 
-
 (defui Todos
   static om/IQueryParams
   (params [this]
@@ -121,12 +125,24 @@
 
   Object
   (componentWillMount [this]
-    (let [loc (.substring js/window.location.hash 2)]
-      (om/set-state! this {:sort-by     :todo/created
-                           :sort-dir    :desc
-                           :filter-type (if-not (str/blank? loc)
-                                          (keyword loc)
-                                          loc)})))
+    (let [loc (.substring js/window.location.hash 2)
+          es (new js/EventSource "/events")]
+      (e/listen es et/MESSAGE
+                (fn [e]
+                  #_(let [{:keys [result query]} (u/read-transit (u/event-data e))]
+                      (om/merge! reconciler result query))
+
+                  (let [msg (u/read-transit (u/event-data e))]
+                    (migrate-tempids nil nil (:tempids msg) :db/id)
+                    (om/transact! this `[(todos/write-tx-changes ~msg) :todos/list]))))
+      (om/set-state! this {:event-source es
+                           :sort-by      :todo/created
+                           :sort-dir     :desc
+                           :filter-type  (u/apply-if str/blank? keyword loc)})))
+
+  (componentWillUnmount [this]
+    (when-let [es (:event-source (om/get-state this))]
+      (e/unlisten es et/MESSAGE)))
   (render [this]
     (let [props (om/props this)
           {:keys [todos/list]} props
@@ -135,11 +151,9 @@
       (dom/div nil
                (dom/header #js {:id "header"}
                            (dom/h1 #js {:onClick #(om/transact! this `[(todos/print)])} "todos")
-                           (new-item-form/new-item-form)
+                           (new-item-form/new-item-form this)
                            (main this props)
                            (footer this props active completed))))))
-
-(def todos (om/factory Todos))
 
 (om/add-root! reconciler Todos (gdom/getElement "todoapp"))
 

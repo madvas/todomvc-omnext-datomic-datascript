@@ -15,25 +15,16 @@
   (let [sys  (system/dev-system dev-config)
         sys' (component/start sys)]
     (reset! servlet-system sys')
+    (println "System started")
     sys'))
 
 (defn stop []
-  (println "stoping system")
-  (swap! servlet-system component/stop))
+  (swap! servlet-system component/stop)
+  (println "System stopped"))
 
 (defn dev-restart []
   (stop)
   (dev-start))
 
-;; =============================================================================
-;; Production
 
 
-(defn service [req]
-  ((:handler (:webserver @servlet-system)) req))
-
-(defn start []
-  (let [s (system/prod-system
-            {:db-uri   "datomic:mem://localhost:4334/todos"})]
-    (let [started-system (component/start s)]
-      (reset! servlet-system started-system))))

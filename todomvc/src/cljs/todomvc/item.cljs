@@ -4,17 +4,16 @@
             [om.dom :as dom]
             [todomvc.util :as u :refer [hidden pluralize]]))
 
-
 (defn submit [c {:keys [db/id todo/title todo/editing]} e]
   (let [edit-text (string/trim (or (om/get-state c :edit-text) ""))]
     (when (and (not (string/blank? edit-text))
                (not= edit-text title)
                editing)
       (om/transact! c `[(todo/update {:db/id ~id :todo/title ~edit-text})
-                        [:todos/by-id ~id]]))
+                        :todos/list]))
     (u/prevent-default e)))
 
-(defn edit [c {:keys [db/id todo/title] :as props}]
+(defn edit [c {:keys [db/id todo/title]}]
   (om/transact! c `[(todo/edit {:db/id ~id})])
   (om/update-state! c merge {:needs-focus true :edit-text title}))
 
@@ -35,15 +34,12 @@
          :type      "checkbox"
          :checked   (and completed "checked")
          :onChange  (fn [_]
-                      (om/transact! c
-                                    `[(todo/update
-                                        {:db/id ~id :todo/completed ~(not completed)})
-                                      :todos/list]))}))
+                      (om/transact! c `[(todo/update
+                                          {:db/id ~id :todo/completed ~(not completed)})
+                                        :todos/list]))}))
 
 (defn label [c {:keys [todo/title] :as props}]
-  (dom/label
-    #js {:onDoubleClick (fn [e] (edit c props))}
-    title))
+  (dom/label #js {:onDoubleClick #(edit c props)} title))
 
 (defn delete-button [c {:keys [db/id]}]
   (dom/button
@@ -58,11 +54,15 @@
          :value     (om/get-state c :edit-text)
          :onBlur    #(submit c props %)
          :onChange  #(change c %)
-         :onKeyDown (u/on-key-down c props {:enter-key  submit
-                                            :escape-key cancel})}))
+         :onKeyDown (u/on-key-down {:enter-key  (partial submit c props)
+                                    :escape-key (partial cancel c props)})}))
 
 
 (defui TodoItem
+  static om/Ident
+  (ident [this {:keys [db/id]}]
+    [:todos/by-id id])
+
   static om/IQuery
   (query [this]
     [:db/id :todo/editing :todo/completed :todo/title :todo/created])

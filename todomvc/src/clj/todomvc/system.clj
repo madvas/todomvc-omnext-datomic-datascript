@@ -1,47 +1,51 @@
 (ns todomvc.system
-  (:require [com.stuartsierra.component :as component]
-            todomvc.server
-            [todomvc.datomic :as todomvc]
-            [todomvc.sente :as sente]))
+  (:require [com.stuartsierra.component :as c]
+            todomvc.datomic
+            todomvc.website
+            todomvc.datomic
+            todomvc.server-sent-events
+            [modular.maker :as mm]
+            [modular.bidi :refer [new-router new-web-resources]]
+            [modular.aleph :refer [new-webserver]]))
 
-(defn dev-system [config-options]
-  (let [{:keys [db-uri web-port]} config-options]
-    (component/system-map
-      :sente (sente/new-sente)
-      :db (todomvc.datomic/new-database db-uri)
-      :webserver
-      (component/using
-        (todomvc.server/dev-server web-port)
-        {:datomic-connection :db
-         :sente              :sente}))))
+(defn http-listener-components [system config]
+  (assoc system :http-listener (new-webserver :port 8081)))
 
-(defn prod-system [config-options]
-  (let [{:keys [db-uri]} config-options]
-    (component/system-map
-      :sente (sente/new-sente)
-      :db (todomvc.datomic/new-database db-uri)
-      :webserver
-      (component/using
-        (todomvc.server/prod-server)
-        {:datomic-connection :db
-         :sente              :sente}))))
 
-(comment
-  (def sys
-    (dev-system
-      {:db-uri   "datomic:mem://localhost:4334/todos"
-       :web-port 8081}))
+(defn modular-bidi-router-components [system config]
+  (assoc system :bidi-request-handler (mm/make new-router config)))
 
-  (def sys' (component/start sys))
+(defn website-components [system config]
+  (assoc system :todomvc-website
+                (-> (mm/make todomvc.website/new-website config)
+                    (c/using []))))
 
-  (require '[datomic.api :as d])
+(defn datomic-component [system config]
+  (assoc system :datomic (todomvc.datomic/new-database (:db-uri config))))
 
-  (def conn (d/connect "datomic:mem://localhost:4334/todos"))
+(defn sse-component [system config]
+  (assoc system :server-sent-events (todomvc.server-sent-events/new-server-sent-events)))
 
-  ;;  (def conn (-> sys' :db :connection))
+(defn new-dependency-map []
+  {:http-listener        {:request-handler :bidi-request-handler}
+   :bidi-request-handler {:sse     :server-sent-events
+                          :website :todomvc-website}
+   :todomvc-website      {:db  :datomic
+                          :sse :server-sent-events}})
 
-  (def db (d/db conn))
+(defn new-system-map
+  [config]
+  (apply c/system-map
+         (apply concat
+                (-> {}
+                    (http-listener-components config)
+                    (modular-bidi-router-components config)
+                    (website-components config)
+                    (datomic-component config)
+                    (sse-component config)))))
 
-  (todomvc/todos db
-                 [:db/id :todo/created :todo/title :todo/completed])
-  )
+(defn dev-system
+  ([] (dev-system {}))
+  ([config]
+   (-> (new-system-map config)
+       (c/system-using (new-dependency-map)))))
