@@ -1,1 +1,1 @@
-web: lein with-profile prod run -m todomvc.prod-server
+web: lein with-profile prod trampoline run -m todomvc.prod-server
