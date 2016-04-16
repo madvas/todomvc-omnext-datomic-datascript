@@ -25,3 +25,8 @@
          ret (.toString baos)]
      (.reset baos)
      ret)))
+
+(defn s->int [s]
+  (if (number? s)
+    s
+    (Integer/parseInt (re-find #"\A-?\d+" s))))

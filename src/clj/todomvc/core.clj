@@ -7,16 +7,8 @@
 ;; =============================================================================
 ;; Development
 
-(def dev-config
-  {:db-uri   "datomic:mem://localhost:4334/todos"
-   :web-port 8081})
-
-(def prod-config
-  {:db-uri   "datomic:mem://localhost:4334/todos"
-   :web-port (or (System/getenv "PORT") 8081)})
-
-(defn dev-start []
-  (let [sys  (system/dev-system dev-config)
+(defn dev-start [config]
+  (let [sys  (system/dev-system config)
         sys' (component/start sys)]
     (reset! servlet-system sys')
     (println "System started")

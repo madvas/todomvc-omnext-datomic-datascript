@@ -6,10 +6,11 @@
             todomvc.server-sent-events
             [modular.maker :as mm]
             [modular.bidi :refer [new-router new-web-resources]]
-            [modular.aleph :refer [new-webserver]]))
+            [modular.aleph :refer [new-webserver]]
+            [todomvc.util :as u]))
 
 (defn http-listener-components [system config]
-  (assoc system :http-listener (new-webserver :port 8081)))
+  (assoc system :http-listener (new-webserver :port (u/s->int (:web-port config)))))
 
 
 (defn modular-bidi-router-components [system config]

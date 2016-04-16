@@ -36,18 +36,18 @@
 
   :cljsbuild {:builds {:app {:source-paths ["src/cljs" "src/cljc"]
                              :figwheel     true
-                             :compiler     {:main            todomvc.core
-                                            :output-to       "resources/public/js/app.js"
-                                            :output-dir      "resources/public/js"
-                                            :asset-path      "/js"
-                                            :optimizations   :simple
-                                            ;:static-fns         true
-                                            ;:optimize-constants true
-                                            :pretty-print    true
-                                            :externs         ["src/js/externs.js"]
-                                            :closure-defines {goog.DEBUG false}
-                                            ;:parallel-build     true
-                                            :verbose         true}}}}
+                             :compiler     {:main               todomvc.core
+                                            :output-to          "resources/public/js/app.js"
+                                            :output-dir         "resources/public/js"
+                                            :asset-path         "/js"
+                                            :optimizations      :simple
+                                            :static-fns         true
+                                            :optimize-constants true
+                                            :pretty-print       true
+                                            :externs            ["src/js/externs.js"]
+                                            :closure-defines    {goog.DEBUG false}
+                                            :parallel-build     true
+                                            :verbose            true}}}}
 
   :profiles {:dev  {:source-paths ["env/dev/clj"]
                     :main         todomvc.dev-server
