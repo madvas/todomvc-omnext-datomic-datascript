@@ -11,6 +11,10 @@
   {:db-uri   "datomic:mem://localhost:4334/todos"
    :web-port 8081})
 
+(def prod-config
+  {:db-uri   "datomic:mem://localhost:4334/todos"
+   :web-port (or (System/getenv "PORT") 8081)})
+
 (defn dev-start []
   (let [sys  (system/dev-system dev-config)
         sys' (component/start sys)]

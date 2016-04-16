@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -cp target/fractalify.jar clojure.main -m fractalify.prod
+web: lein with-profile dev run -m todomvc.prod-server
