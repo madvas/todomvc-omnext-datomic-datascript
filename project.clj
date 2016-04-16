@@ -40,7 +40,7 @@
                                             :output-to          "resources/public/js/app.js"
                                             :output-dir         "resources/public/js"
                                             :asset-path         "/js"
-                                            :optimizations      :simple
+                                            :optimizations      :none
                                             :static-fns         true
                                             :optimize-constants true
                                             :pretty-print       true
