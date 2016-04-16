@@ -1,1 +1,1 @@
-web: lein with-profile dev run -m todomvc.prod-server
+web: lein with-profile prod run -m todomvc.prod-server
