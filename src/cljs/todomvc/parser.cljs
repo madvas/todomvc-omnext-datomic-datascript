@@ -72,7 +72,6 @@
                                 (get id))]
                (om/transact! component `[(todo/create ~(assoc new-todo :db/id local-id))])))})
 
-
 (defmethod mutate 'todo/delete
   [{:keys [state]} _ {:keys [db/id]}]
   {:value  {:keys [:todos/list]}
@@ -80,7 +79,6 @@
    :action (fn []
 
              (q/retract-entity! state id))})
-
 
 (defmethod mutate 'todos/delete-by
   [{:keys [state]} _ cond-map]

@@ -27,5 +27,5 @@
          :value       (om/get-state c :new-item-title)
          :placeholder "What needs to be done??"
          :onChange    #(change c %)
-         :onKeyDown   (u/on-key-down {:escape-key (partial clear-input c)
-                                      :enter-key  (partial submit c)})}))
+         :onKeyDown   (u/on-key-down {:key/esc   (partial clear-input c)
+                                      :key/enter (partial submit c)})}))

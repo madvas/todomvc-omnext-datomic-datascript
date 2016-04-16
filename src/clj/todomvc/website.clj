@@ -52,19 +52,10 @@
     component)
 
   b/RouteProvider
-  ;; Return a bidi route structure, mapping routes to wrapped
-  ;; handlers. This additional level of indirection means we can
-  ;; generate hyperlinks from known keywords.
   (routes [component]
     ["/" [["api" (yada (om-next-query-resource (om/parser {:read tp/readf :mutate tp/mutatef}) component))]
           ["" (yada (io/resource "public/html/index.html"))]
-          ["" (yada (yr/new-classpath-resource "public/"))]]]
-    ))
-
-;; While not mandatory, it is common to use a function to construct an
-;; instance of the component. This affords the opportunity to control
-;; the construction with parameters, provide defaults and declare
-;; dependency relationships with other components.
+          ["" (yada (yr/new-classpath-resource "public/"))]]]))
 
 (defn new-website []
   (-> (map->Website {})))

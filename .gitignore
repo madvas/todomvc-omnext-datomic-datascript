@@ -1,7 +1,5 @@
 .idea
-todomvc/target
-todomvc/resources/public/js
-todomvc/.lein*
-todomvc/.nrepl*
-todomvc/figwheel_server.log
-.repl*
+.repl-1.8.40
+target
+resources/public/js
+checkouts

@@ -49,8 +49,8 @@
 (defn on-key-down [key-fns]
   (fn [e]
     (let [f (condp == (.-keyCode e)
-              kc/ESC (:escape-key key-fns)
-              kc/ENTER (:enter-key key-fns)
+              kc/ESC (:key/esc key-fns)
+              kc/ENTER (:key/enter key-fns)
               #(do %))]
       (f e))))
 

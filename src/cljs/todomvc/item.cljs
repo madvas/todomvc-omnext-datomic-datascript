@@ -51,8 +51,8 @@
          :value     (om/get-state c :edit-text)
          :onBlur    #(submit c props %)
          :onChange  #(change c %)
-         :onKeyDown (u/on-key-down {:enter-key  (partial submit c props)
-                                    :escape-key (partial cancel c props)})}))
+         :onKeyDown (u/on-key-down {:key/enter (partial submit c props)
+                                    :key/esc   (partial cancel c props)})}))
 
 (defui TodoItem
   static om/IQuery
