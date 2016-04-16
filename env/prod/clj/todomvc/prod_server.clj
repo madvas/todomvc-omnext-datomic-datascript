@@ -6,6 +6,7 @@
    :web-port (or (System/getenv "PORT") 8081)})
 
 (defn -main [& args]
+  (println "Starting on port " (:web-port config))
   (todomvc/dev-start config)
   (println (str "Started server on port " (:web-port config)))
   (.addShutdownHook (Runtime/getRuntime)
