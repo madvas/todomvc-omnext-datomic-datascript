@@ -55,7 +55,7 @@
                     :plugins      [[lein-figwheel "0.5.1"]]
                     :figwheel     {:server-port 3449}}
              :prod {:source-paths ["env/prod/clj"]
-                    :hooks        [leiningen.cljsbuild]
+                    ;:hooks        [leiningen.cljsbuild]
                     :main         todomvc.prod-server}}
 
   )
