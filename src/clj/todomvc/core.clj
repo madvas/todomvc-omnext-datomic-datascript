@@ -18,9 +18,9 @@
   (swap! servlet-system component/stop)
   (println "System stopped"))
 
-(defn dev-restart []
+(defn dev-restart [config]
   (stop)
-  (dev-start))
+  (dev-start config))
 
 
 
