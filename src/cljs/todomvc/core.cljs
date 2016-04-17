@@ -25,11 +25,11 @@
 ; with atom
 (def conn (d/conn-from-datoms [(d/datom -1 :dummy/item 1)]))
 
-#_ (d/listen! conn :log (fn [tx-report]
-                       (->> (:tx-data tx-report)
-                            (filter #(true? (last %)))
-                            (map #(apply println (take 3 %)))
-                            doall)))
+#_(d/listen! conn :log (fn [tx-report]
+                         (->> (:tx-data tx-report)
+                              (filter #(true? (last %)))
+                              (map #(apply println (take 3 %)))
+                              doall)))
 
 (defn show-item? [filter-type item]
   (let [completed? (:todo/completed item)]
@@ -137,7 +137,7 @@
 
   (componentWillUnmount [this]
     (when-let [es (:event-source (om/get-state this))]
-      (e/unlisten es et/MESSAGE)))
+      (e/removeAll es et/MESSAGE)))
   (render [this]
     (let [props (om/props this)
           {:keys [todos/list]} props

@@ -19,7 +19,6 @@
                  [figwheel-sidecar "0.5.0-2" :scope "test"]
                  [com.cemerick/piggieback "0.2.1"]
                  [org.clojure/tools.nrepl "0.2.10"]
-                 [http-kit "2.1.19"]
                  [aleph "0.4.1-beta5"]
                  [bidi "2.0.4"]
                  [yada "1.1.5"]
