@@ -1,5 +1,6 @@
 (ns todomvc.prod-server
-  (:require [todomvc.core :as todomvc]))
+  (:require [todomvc.core :as todomvc])
+  (:gen-class))
 
 (def config
   {:db-uri   "datomic:mem://localhost:4334/todos"

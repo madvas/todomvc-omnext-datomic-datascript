@@ -29,6 +29,7 @@
                  [juxt.modular/aleph "0.1.4"]]
 
   :min-lein-version "2.0.0"
+  :uberjar-name "todomvc.jar"
   :clean-targets ^{:protect false} ["resources/public/js"]
   :source-paths ["src/clj" "src/cljs" "src/cljc"]
   ;:checkout-deps-shares ^:replace
@@ -40,7 +41,7 @@
                                             :output-to          "resources/public/js/app.js"
                                             :output-dir         "resources/public/js"
                                             :asset-path         "/js"
-                                            :optimizations      :none
+                                            :optimizations      :simple
                                             :static-fns         true
                                             :optimize-constants true
                                             :pretty-print       true
@@ -49,13 +50,16 @@
                                             :parallel-build     true
                                             :verbose            true}}}}
 
-  :profiles {:dev  {:source-paths ["env/dev/clj"]
-                    :main         todomvc.dev-server
-                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-                    :plugins      [[lein-figwheel "0.5.1"]]
-                    :figwheel     {:server-port 3449}}
-             :prod {:source-paths ["env/prod/clj"]
-                    ;:hooks        [leiningen.cljsbuild]
-                    :main         todomvc.prod-server}}
+  :profiles {:dev     {:source-paths ["env/dev/clj"]
+                       :main         todomvc.dev-server
+                       :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                       :plugins      [[lein-figwheel "0.5.1"]]
+                       :figwheel     {:server-port 3449}}
+             :uberjar {:source-paths ["env/prod/clj"]
+                       :main         todomvc.prod-server
+                       :hooks        [leiningen.cljsbuild]
+                       :aot          :all
+                       :omit-source  true
+                       }}
 
   )

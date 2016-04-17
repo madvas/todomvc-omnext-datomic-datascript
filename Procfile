@@ -1,1 +1,1 @@
-web: lein with-profile prod trampoline run -m todomvc.prod-server
+web: java $JVM_OPTS -cp target/todomvc.jar clojure.main -m todomvc.prod-server
