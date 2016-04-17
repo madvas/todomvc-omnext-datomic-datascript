@@ -13,7 +13,5 @@
 (.addShutdownHook (Runtime/getRuntime)
                   (Thread. #(do (todomvc/stop)
                                 (println "Server stopped"))))
-#_(when-not (System/getenv "NO_FIGWHEEL")
-    )
-(tf/start-fig!)
+#_ (tf/start-fig!)
 ;)

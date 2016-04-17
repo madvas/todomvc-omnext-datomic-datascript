@@ -48,7 +48,7 @@
 
 (defn on-key-down [key-fns]
   (fn [e]
-    (let [f (condp == (.-keyCode e)
+    (let [f (condp == (aget e "keyCode")
               kc/ESC (:key/esc key-fns)
               kc/ENTER (:key/enter key-fns)
               #(do %))]
@@ -59,7 +59,7 @@
     (sort-by keyfn comp coll)))
 
 (defn event-data [e]
-  (-> e (aget "event_") (aget "data")))
+  (aget (.-event_ e) "data"))
 
 (defn apply-if [pred f x & args]
   (if-not (pred x)

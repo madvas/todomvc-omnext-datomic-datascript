@@ -60,6 +60,10 @@
                        :hooks        [leiningen.cljsbuild]
                        :aot          :all
                        :omit-source  true
+                       :cljsbuild    {:builds {:app
+                                               {:compiler {:optimizations   :advanced
+                                                           :closure-defines {:goog.DEBUG false}
+                                                           :pretty-print    false}}}}
                        }}
 
   )
