@@ -129,7 +129,7 @@
                 (fn [e]
                   (let [msg (u/read-transit (u/event-data e))]
                     (migrate-tempids nil nil (:tempids msg) (:id-key (:config reconciler)))
-                    (om/transact! this `[(todos/write-tx-changes ~msg) :todos/list]))))
+                    (om/transact! this `[(todos/write-tx-data ~msg) :todos/list]))))
       (om/set-state! this {:event-source es
                            :sort-by      :todo/created
                            :sort-dir     :desc

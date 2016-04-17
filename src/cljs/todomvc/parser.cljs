@@ -87,7 +87,7 @@
    :action (fn []
              (q/todos-delete-by! state cond-map))})
 
-(defmethod mutate 'todos/write-tx-changes
+(defmethod mutate 'todos/write-tx-data
   [{:keys [state]} _ {:keys [tx-data]}]
   {:remote false
    :action (fn []
